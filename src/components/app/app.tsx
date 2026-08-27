@@ -44,10 +44,6 @@ const App = () => {
   const location = useLocation();
   const backgroundLocation = location.state?.background;
 
-  // if (isIngredientsLoading || isAuthChecked) {
-  //   return <Preloader />;
-  // }
-
   if (error) {
     return <div>{error}</div>;
   }
@@ -55,99 +51,105 @@ const App = () => {
   return (
     <div className={styles.app}>
       <AppHeader />
-      <Routes location={backgroundLocation || location}>
-        <Route path='/' element={<ConstructorPage />} />
-        <Route path='/feed' element={<Feed />} />
-        <Route
-          path='/login'
-          element={
-            <ProtectedRoute>
-              <Login />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path='/register'
-          element={
-            <ProtectedRoute>
-              <Register />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path='/forgot-password'
-          element={
-            <ProtectedRoute>
-              <ForgotPassword />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path='/reset-password'
-          element={
-            <ProtectedRoute>
-              <ResetPassword />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path='/profile'
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path='/profile/orders'
-          element={
-            <ProtectedRoute>
-              <ProfileOrders />
-            </ProtectedRoute>
-          }
-        />
-        <Route path='/ingredients/:id' element={<IngredientDetails />} />
-        <Route path='*' element={<NotFound404 />} />
-      </Routes>
+      {isIngredientsLoading || !isAuthChecked ? (
+        <Preloader />
+      ) : (
+        <>
+          <Routes location={backgroundLocation || location}>
+            <Route path='/' element={<ConstructorPage />} />
+            <Route path='/feed' element={<Feed />} />
+            <Route
+              path='/login'
+              element={
+                <ProtectedRoute forUnauthorized>
+                  <Login />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path='/register'
+              element={
+                <ProtectedRoute forUnauthorized>
+                  <Register />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path='/forgot-password'
+              element={
+                <ProtectedRoute forUnauthorized>
+                  <ForgotPassword />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path='/reset-password'
+              element={
+                <ProtectedRoute forUnauthorized>
+                  <ResetPassword />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path='/profile'
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path='/profile/orders'
+              element={
+                <ProtectedRoute>
+                  <ProfileOrders />
+                </ProtectedRoute>
+              }
+            />
+            <Route path='/ingredients/:id' element={<IngredientDetails />} />
+            <Route path='*' element={<NotFound404 />} />
+          </Routes>
 
-      {backgroundLocation && (
-        <Routes>
-          <Route
-            path='/feed/:number'
-            element={
-              <Modal
-                title='Детали заказа'
-                onClose={() => window.history.back()}
-              >
-                <OrderInfo />
-              </Modal>
-            }
-          />
-          <Route
-            path='/ingredients/:id'
-            element={
-              <Modal
-                title='Детали ингредиента'
-                onClose={() => window.history.back()}
-              >
-                <IngredientDetails />
-              </Modal>
-            }
-          />
-          <Route
-            path='/profile/orders/:number'
-            element={
-              <ProtectedRoute>
-                <Modal
-                  title='Детали заказа'
-                  onClose={() => window.history.back()}
-                >
-                  <OrderInfo />
-                </Modal>
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+          {backgroundLocation && (
+            <Routes>
+              <Route
+                path='/feed/:number'
+                element={
+                  <Modal
+                    title='Детали заказа'
+                    onClose={() => window.history.back()}
+                  >
+                    <OrderInfo />
+                  </Modal>
+                }
+              />
+              <Route
+                path='/ingredients/:id'
+                element={
+                  <Modal
+                    title='Детали ингредиента'
+                    onClose={() => window.history.back()}
+                  >
+                    <IngredientDetails />
+                  </Modal>
+                }
+              />
+              <Route
+                path='/profile/orders/:number'
+                element={
+                  <ProtectedRoute>
+                    <Modal
+                      title='Детали заказа'
+                      onClose={() => window.history.back()}
+                    >
+                      <OrderInfo />
+                    </Modal>
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          )}
+        </>
       )}
     </div>
   );

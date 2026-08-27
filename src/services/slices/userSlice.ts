@@ -6,16 +6,14 @@ import {
   getUserApi,
   updateUserApi
 } from '../../utils/burger-api';
+import { setCookie } from '../../utils/cookie';
 
 interface TUserState {
-  user: {
-    email: string;
-    name: string;
-  } | null;
+  user: { email: string; name: string } | null;
   isAuthChecked: boolean;
   loginUserRequest: boolean;
   isLoading: boolean;
-  error: string | null;
+  error: string | null | undefined;
 }
 
 const initialState: TUserState = {
@@ -30,6 +28,8 @@ export const loginUser = createAsyncThunk(
   'user/login',
   async (data: { email: string; password: string }) => {
     const response = await loginUserApi(data);
+    localStorage.setItem('refreshToken', response.refreshToken);
+    setCookie('accessToken', response.accessToken);
     return response.user;
   }
 );
@@ -38,18 +38,30 @@ export const registerUser = createAsyncThunk(
   'user/register',
   async (data: { email: string; name: string; password: string }) => {
     const response = await registerUserApi(data);
+    localStorage.setItem('refreshToken', response.refreshToken);
+    setCookie('accessToken', response.accessToken);
     return response.user;
   }
 );
 
 export const logoutUser = createAsyncThunk('user/logout', async () => {
   await logoutApi();
+  localStorage.removeItem('refreshToken');
+  setCookie('accessToken', '', { expires: -1 });
 });
 
 export const getUser = createAsyncThunk('user/getUser', async () => {
   const response = await getUserApi();
   return response.user;
 });
+
+export const updateUser = createAsyncThunk(
+  'user/updateUser',
+  async (data: { name?: string; email?: string; password?: string }) => {
+    const response = await updateUserApi(data);
+    return response.user;
+  }
+);
 
 export const userSlice = createSlice({
   name: 'user',
@@ -72,7 +84,7 @@ export const userSlice = createSlice({
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Ошибка входа';
+        state.error = action.error.message;
       })
       .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
@@ -85,7 +97,7 @@ export const userSlice = createSlice({
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Ошибка регистрации';
+        state.error = action.error.message;
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
@@ -104,6 +116,19 @@ export const userSlice = createSlice({
         state.isLoading = false;
         state.isAuthChecked = true;
         state.user = null;
+      })
+      // ← ДОБАВЬ ЭТО
+      .addCase(updateUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload;
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message;
       });
   }
 });
