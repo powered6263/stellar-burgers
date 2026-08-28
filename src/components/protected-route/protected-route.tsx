@@ -5,12 +5,12 @@ import { Preloader } from '@ui';
 
 type ProtectedRouteProps = {
   children: ReactElement;
-  forUnauthorized?: boolean;
+  onlyUnAuth?: boolean;
 };
 
 export const ProtectedRoute = ({
   children,
-  forUnauthorized = false
+  onlyUnAuth = false
 }: ProtectedRouteProps) => {
   const location = useLocation();
   const { user, isAuthChecked } = useSelector((state) => state.user);
@@ -19,12 +19,14 @@ export const ProtectedRoute = ({
     return <Preloader />;
   }
 
-  if (forUnauthorized && user) {
-    return <Navigate to='/profile' replace />;
+  if (!onlyUnAuth && !user) {
+    return <Navigate to='/login' state={{ from: location }} replace />;
   }
 
-  if (!forUnauthorized && !user) {
-    return <Navigate to='/login' state={{ from: location }} replace />;
+  if (onlyUnAuth && user) {
+    const from = location.state?.from || { pathname: '/' };
+
+    return <Navigate to={from} replace />;
   }
 
   return children;

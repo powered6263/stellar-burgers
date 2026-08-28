@@ -1,11 +1,16 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { orderBurgerApi, getOrdersApi } from '../../utils/burger-api';
+import {
+  orderBurgerApi,
+  getOrdersApi,
+  getOrderByNumberApi
+} from '../../utils/burger-api';
 import { TOrder } from '../../utils/types';
 
 interface orderState {
   orderRequest: boolean;
   orderModalData: TOrder | null;
   ordersHistory: TOrder[];
+  currentOrder: TOrder | null;
   isLoading: boolean;
   error: null | string | undefined;
 }
@@ -14,6 +19,7 @@ const initialState: orderState = {
   orderRequest: false,
   orderModalData: null,
   ordersHistory: [],
+  currentOrder: null,
   isLoading: false,
   error: null
 };
@@ -34,6 +40,14 @@ export const fetchOrdersHistory = createAsyncThunk(
   async () => {
     const response = await getOrdersApi();
     return response;
+  }
+);
+
+export const fetchOrderByNumber = createAsyncThunk(
+  'order/fetchOrderByNumber',
+  async (number: number) => {
+    const response = await getOrderByNumberApi(number);
+    return response.orders[0];
   }
 );
 
@@ -71,7 +85,19 @@ export const orderSlice = createSlice({
       })
       .addCase(fetchOrdersHistory.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Ошибка загрузки истории';
+        state.error = action.error.message;
+      })
+      .addCase(fetchOrderByNumber.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchOrderByNumber.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentOrder = action.payload;
+      })
+      .addCase(fetchOrderByNumber.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message;
       });
   }
 });
