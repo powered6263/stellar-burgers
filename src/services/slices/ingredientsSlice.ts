@@ -14,7 +14,7 @@ interface ingredientListState {
   error: null | string | undefined;
 }
 
-const initialState: ingredientListState = {
+export const initialState: ingredientListState = {
   ingredients: [],
   isIngredientsLoading: false,
   error: null
