@@ -3,8 +3,7 @@ import { test, expect } from '@playwright/test';
 test.beforeEach('Запись/воспроизведение HAR-файла с ингредиентами', async ({ page }) => {
     
   await page.routeFromHAR('./tests/hars/ingredients.har', {
-    url: '**/api/ingredients',
-    update: false,
+    url: '**/api/ingredients'
   });
 
   await page.goto('/');
@@ -71,31 +70,14 @@ test.describe('Тест: модальное окно ингредиента', ()
 test.describe('Тест: создание заказа', () => {
   
   test.beforeEach(async ({ context, page }) => {
-    // Моковые данные ответа на запрос данных пользователя
-    await page.route('**/api/auth/user', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          success: true,
-          user: { email: 'test@test.ru', name: 'Тест' },
-        }),
-      });
+    await page.routeFromHAR('./tests/hars/user.har', {
+      url: '**/api/auth/user'
     });
 
-    // Моковые данные ответа на запрос создания заказа
-    await page.route('**/api/orders', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          success: true,
-          order: { number: 987654321 },
-        }),
-      });
+    await page.routeFromHAR('./tests/hars/orders.har', {
+      url: '**/api/orders'
     });
 
-    // Моковые токены авторизации (Cookies)
     await context.addCookies([
       {
         name: 'accessToken',
@@ -105,7 +87,6 @@ test.describe('Тест: создание заказа', () => {
       },
     ]);
 
-    // Моковые токены авторизации (LocalStorage)
     await page.addInitScript(() => {
       localStorage.setItem('refreshToken', 'mock-refresh-token');
     });
@@ -134,7 +115,7 @@ test.describe('Тест: создание заказа', () => {
     const orderButton = page.getByTestId('order-bottom');
     await expect(orderButton).toBeVisible();
     await orderButton.click();
-    await expect(page.getByTestId('order-number')).toContainText('987654321', { timeout: 10000 });
+    await expect(page.getByTestId('order-number')).toContainText('110286', { timeout: 10000 });
   });
 
   test('Очистка конструктора после заказа', async ({ page }) => {
@@ -146,7 +127,7 @@ test.describe('Тест: создание заказа', () => {
     await expect(page.getByTestId('constructor-ingredients-empty')).toBeVisible({ timeout: 10000 });
   });
 
-  test('Зткрытие модального окна заказа', async ({ page }) => {
+  test('Закрытие модального окна заказа', async ({ page }) => {
     const orderButton = page.getByTestId('order-bottom');
     await expect(orderButton).toBeVisible();
     await orderButton.click();

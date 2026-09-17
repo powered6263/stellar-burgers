@@ -77,4 +77,7 @@ export default defineConfig({
     url: 'http://localhost:4000',
     reuseExistingServer: !process.env.CI,
   }, 
+
+  testIgnore: ['**/record-hars.spec.ts'],
+
 });
